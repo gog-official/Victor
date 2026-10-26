@@ -42,6 +42,65 @@ func TestNewFraction(t *testing.T) {
 	})
 }
 
+func TestNewInteger(t *testing.T) {
+	t.Run("positive integer", func(t *testing.T) {
+		n := NewInteger(9)
+		require.Equal(t, "9", n.String())
+	})
+	t.Run("negative integer", func(t *testing.T) {
+		n := NewInteger(-6)
+		require.Equal(t, "-6", n.String())
+	})
+	t.Run("zero", func(t *testing.T) {
+		n := NewInteger(0)
+		require.Equal(t, "0", n.String())
+	})
+}
+
+func TestIsZero(t *testing.T) {
+	t.Run("integer zero", func(t *testing.T) {
+		n := NewInteger(0)
+		require.True(t, n.IsZero())
+	})
+
+	t.Run("zero fraction", func(t *testing.T) {
+		n := mustFraction(t, 0, 5)
+		require.True(t, n.IsZero())
+	})
+
+	t.Run("nonzero fraction", func(t *testing.T) {
+		n := mustFraction(t, 1, 3)
+		require.False(t, n.IsZero())
+	})
+
+	t.Run("negative number", func(t *testing.T) {
+		n := NewInteger(-2)
+		require.False(t, n.IsZero())
+	})
+}
+
+func TestFloat64(t *testing.T) {
+	t.Run("exact decimal conversion", func(t *testing.T) {
+		n := mustFraction(t, 1, 4)
+		require.Equal(t, 0.25, n.Float64())
+	})
+
+	t.Run("integer conversion", func(t *testing.T) {
+		n := NewInteger(5)
+		require.Equal(t, 5.0, n.Float64())
+	})
+
+	t.Run("repeating decimal conversion", func(t *testing.T) {
+		n := mustFraction(t, 1, 3)
+		require.InDelta(t, 0.3333333333333333, n.Float64(), 1e-15)
+	})
+
+	t.Run("negative conversion", func(t *testing.T) {
+		n := mustFraction(t, -1, 2)
+		require.Equal(t, -0.5, n.Float64())
+	})
+}
+
 func TestAddN(t *testing.T) {
 	a := mustFraction(t, 1, 3)
 	b := mustFraction(t, 1, 6)

@@ -20,8 +20,23 @@ func NewFraction(numerator, denominator int64) (Number, error) {
 	return num, nil
 }
 
+func NewInteger(value int64) Number {
+	num := Number{}
+	num.value.SetFrac64(value, 1)
+	return num
+}
+
 func (n Number) String() string {
 	return n.value.RatString()
+}
+
+func (n Number) IsZero() bool {
+	return n.value.Sign() == 0
+}
+
+func (n Number) Float64() float64 {
+	val, _ := n.value.Float64()
+	return val
 }
 
 func AddN(a, b Number) Number {
