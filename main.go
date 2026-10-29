@@ -22,10 +22,6 @@ func printHeader() {
 	fmt.Println(heading)
 }
 
-func printUnknownCmd(txt string) {
-	fmt.Println(txt, ": command not found")
-}
-
 func handleHelp() {
 	fmt.Printf("Welcome to %v! These are available commands: \n", name)
 	fmt.Println()
@@ -39,30 +35,26 @@ func handleHelp() {
 	fmt.Println("  -a                 - Negation")
 	fmt.Println()
 	fmt.Println("Vectors (maximum 5):")
-	fmt.Println("  .define a = (3, 4) - Defines or replaces vector a")
-	fmt.Println("  .define c = a + b  - Defines a vector from an expression")
-	fmt.Println("  .show a            - Shows vector a")
-	fmt.Println("  .list              - Lists all vectors")
-	fmt.Println("  .delete a          - Deletes vector a")
+	fmt.Println("  define a = (3, 4) - Defines or replaces vector a")
+	fmt.Println("  define c = a + b  - Defines a vector from an expression")
+	fmt.Println("  show a            - Shows vector a")
+	fmt.Println("  list              - Lists all vectors")
+	fmt.Println("  delete a          - Deletes vector a")
 	fmt.Println()
 	fmt.Println("Vector functions:")
-	fmt.Println("  .mag a             - Magnitude of a")
-	fmt.Println("  .norm a            - Normalizes a")
+	fmt.Println("  mag a             - Magnitude of a")
+	fmt.Println("  norm a            - Normalizes a")
 	fmt.Println()
 	fmt.Println("Commands:")
-	fmt.Println("  .help              - Shows available operations")
-	fmt.Println("  .clear             - Clears the terminal")
-	fmt.Println("  .exit              - Closes Victor. please dont :( ")
+	fmt.Println("  help              - Shows available operations")
+	fmt.Println("  clear             - Clears the terminal")
+	fmt.Println("  exit              - Closes Victor. please dont :( ")
 }
 
 func handleClear() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
-}
-
-func handleUnknownCmd(txt string) {
-	printUnknownCmd(txt)
 }
 
 func evaluate(txt string) (Value, error) {
@@ -85,17 +77,17 @@ func printValue(value Value) {
 }
 
 func handleDefine(txt string) error {
-	body := strings.TrimSpace(strings.TrimPrefix(txt, ".define"))
+	body := strings.TrimSpace(strings.TrimPrefix(txt, "define"))
 	parts := strings.SplitN(body, "=", 2)
 	if len(parts) != 2 {
-		return fmt.Errorf("usage: .define <name> = (<x>, <y>)")
+		return fmt.Errorf("usage: define <name> = (<x>, <y>)")
 	}
 
 	vecName := strings.TrimSpace(parts[0])
 	value := strings.TrimSpace(parts[1])
 
 	if value == "" {
-		return fmt.Errorf("usage: .define <name> = (<x>, <y>)")
+		return fmt.Errorf("usage: define <name> = (<x>, <y>)")
 	}
 
 	result, err := evaluate(value)
@@ -117,7 +109,7 @@ func handleDefine(txt string) error {
 
 func handleShow(args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("usage: .show <name>")
+		return fmt.Errorf("usage: show <name>")
 	}
 
 	vector, exists := workspace.Get(args[1])
@@ -144,7 +136,7 @@ func handleList() {
 
 func handleDelete(args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("usage: .delete <name>")
+		return fmt.Errorf("usage: delete <name>")
 	}
 
 	if !workspace.Delete(args[1]) {
@@ -157,7 +149,7 @@ func handleDelete(args []string) error {
 
 func handleMagnitude(args []string) error {
 	if len(args) < 2 {
-		return fmt.Errorf("usage: .mag <vector>")
+		return fmt.Errorf("usage: mag <vector>")
 	}
 
 	result, err := evaluate(strings.Join(args[1:], " "))
@@ -175,7 +167,7 @@ func handleMagnitude(args []string) error {
 
 func handleNormalize(args []string) error {
 	if len(args) < 2 {
-		return fmt.Errorf("usage: .norm <vector>")
+		return fmt.Errorf("usage: norm <vector>")
 	}
 
 	result, err := evaluate(strings.Join(args[1:], " "))
@@ -205,34 +197,29 @@ func handleCmd(txt string) {
 	command := args[0]
 
 	switch command {
-	case ".define":
+	case "define":
 		if err := handleDefine(txt); err != nil {
 			fmt.Println("error:", err)
 		}
-	case ".show":
+	case "show":
 		if err := handleShow(args); err != nil {
 			fmt.Println("error:", err)
 		}
-	case ".list":
+	case "list":
 		handleList()
-	case ".delete":
+	case "delete":
 		if err := handleDelete(args); err != nil {
 			fmt.Println("error:", err)
 		}
-	case ".mag", ".magnitude":
+	case "mag", "magnitude":
 		if err := handleMagnitude(args); err != nil {
 			fmt.Println("error:", err)
 		}
-	case ".norm", ".normalize":
+	case "norm", "normalize":
 		if err := handleNormalize(args); err != nil {
 			fmt.Println("error:", err)
 		}
 	default:
-		if strings.HasPrefix(command, ".") {
-			handleUnknownCmd(command)
-			return
-		}
-
 		result, err := evaluate(txt)
 		if err != nil {
 			fmt.Println("error:", err)
@@ -250,8 +237,8 @@ func cleanInput(txt string) string {
 
 func main() {
 	commands := map[string]interface{}{
-		".help":  handleHelp,
-		".clear": handleClear,
+		"help":  handleHelp,
+		"clear": handleClear,
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -262,7 +249,7 @@ func main() {
 		txt := cleanInput(scanner.Text())
 		if command, exists := commands[txt]; exists {
 			command.(func())()
-		} else if strings.EqualFold(".exit", txt) {
+		} else if strings.EqualFold("exit", txt) {
 			return
 		} else {
 			handleCmd(txt)
