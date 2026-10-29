@@ -65,3 +65,9 @@ func DivN(a, b Number) (Number, error) {
 	n.value.Quo(&a.value, &b.value)
 	return n, nil
 }
+
+func NewFloat64(value float64) Number {
+	num := Number{}
+	num.value.SetFloat64(value)
+	return num
+}

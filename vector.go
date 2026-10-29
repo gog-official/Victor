@@ -8,18 +8,16 @@ import (
 var ErrDivisionByZero error = errors.New("cannot divide by 0")
 
 type Vector2D struct {
-	X float64
-	Y float64
+	X Number
+	Y Number
 }
 
 func (v Vector2D) Magnitude() float64 {
-	mag := math.Sqrt(v.MagnitudeSquared())
-	return mag
+	return math.Sqrt(v.MagnitudeSquared().Float64())
 }
 
-func (v Vector2D) MagnitudeSquared() float64 {
-	magSq := v.X*v.X + v.Y*v.Y
-	return magSq
+func (v Vector2D) MagnitudeSquared() Number {
+	return AddN(MulN(v.X, v.X), MulN(v.Y, v.Y))
 }
 
 func (v Vector2D) Normalize() (Vector2D, error) {
@@ -27,62 +25,62 @@ func (v Vector2D) Normalize() (Vector2D, error) {
 	if mag == 0 {
 		return Vector2D{}, ErrDivisionByZero
 	}
-	nX, nY := v.X/mag, v.Y/mag
-	return Vector2D{
-		nX, nY,
-	}, nil
+
+	magNum := NewFloat64(mag)
+	nX, err := DivN(v.X, magNum)
+	if err != nil {
+		return Vector2D{}, err
+	}
+	nY, err := DivN(v.Y, magNum)
+	if err != nil {
+		return Vector2D{}, err
+	}
+
+	return Vector2D{nX, nY}, nil
 }
 
 func Add(vectors ...Vector2D) Vector2D {
-	sumX := 0.00
-	sumY := 0.00
+	sum := Vector2D{NewInteger(0), NewInteger(0)}
 
 	for _, vector := range vectors {
-		sumX += vector.X
-		sumY += vector.Y
+		sum.X = AddN(sum.X, vector.X)
+		sum.Y = AddN(sum.Y, vector.Y)
 	}
 
-	sumVector := Vector2D{
-		X: sumX,
-		Y: sumY,
-	}
-
-	return sumVector
+	return sum
 }
 
 func Subtract(vec1, vec2 Vector2D) Vector2D {
-	difX := vec1.X - vec2.X
-	difY := vec1.Y - vec2.Y
-	difVector := Vector2D{
-		X: difX,
-		Y: difY,
-	}
-
-	return difVector
-}
-
-func Scale(vector Vector2D, scalar float64) Vector2D {
-	scaledX := vector.X * scalar
-	scaledY := vector.Y * scalar
 	return Vector2D{
-		X: scaledX,
-		Y: scaledY,
+		X: SubN(vec1.X, vec2.X),
+		Y: SubN(vec1.Y, vec2.Y),
 	}
 }
 
-func Divide(vector Vector2D, scalar float64) (Vector2D, error) {
-	if scalar == 0 {
+func Scale(vector Vector2D, scalar Number) Vector2D {
+	return Vector2D{
+		X: MulN(vector.X, scalar),
+		Y: MulN(vector.Y, scalar),
+	}
+}
+
+func Divide(vector Vector2D, scalar Number) (Vector2D, error) {
+	if scalar.IsZero() {
 		return Vector2D{}, ErrDivisionByZero
 	}
-	qX, qY := vector.X/scalar, vector.Y/scalar
 
-	return Vector2D{
-		X: qX,
-		Y: qY,
-	}, nil
+	qX, err := DivN(vector.X, scalar)
+	if err != nil {
+		return Vector2D{}, err
+	}
+	qY, err := DivN(vector.Y, scalar)
+	if err != nil {
+		return Vector2D{}, err
+	}
+
+	return Vector2D{X: qX, Y: qY}, nil
 }
 
-func DotProduct(vec1, vec2 Vector2D) float64 {
-	product := vec1.X*vec2.X + vec1.Y*vec2.Y
-	return product
+func DotProduct(vec1, vec2 Vector2D) Number {
+	return AddN(MulN(vec1.X, vec2.X), MulN(vec1.Y, vec2.Y))
 }

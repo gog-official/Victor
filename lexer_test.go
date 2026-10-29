@@ -116,14 +116,14 @@ func TestNextToken(t *testing.T) {
 		require.Equal(t, "@", got.Literal)
 	})
 
-	t.Run("identifier is illegal for now", func(t *testing.T) {
+	t.Run("identifier", func(t *testing.T) {
 		input := "abc"
 
 		lex := NewLexer(input)
 
 		got := lex.NextToken()
 
-		require.Equal(t, TokenIllegal, got.Type)
+		require.Equal(t, TokenIdentifier, got.Type)
 		require.Equal(t, "abc", got.Literal)
 	})
 
@@ -141,5 +141,28 @@ func TestNextToken(t *testing.T) {
 
 		require.Equal(t, TokenEOF, lex.NextToken().Type)
 		require.Equal(t, TokenEOF, lex.NextToken().Type)
+	})
+}
+
+func TestNextTokenVectorSyntax(t *testing.T) {
+	t.Run("comma and identifiers", func(t *testing.T) {
+		input := "a, b_2"
+
+		expected := []Token{
+			{Type: TokenIdentifier, Literal: "a"},
+			{Type: TokenComma, Literal: ","},
+			{Type: TokenIdentifier, Literal: "b_"},
+			{Type: TokenNumber, Literal: "2"},
+			{Type: TokenEOF, Literal: ""},
+		}
+
+		lex := NewLexer(input)
+
+		for _, want := range expected {
+			got := lex.NextToken()
+
+			require.Equal(t, want.Type, got.Type)
+			require.Equal(t, want.Literal, got.Literal)
+		}
 	})
 }

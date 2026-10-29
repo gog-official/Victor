@@ -156,3 +156,20 @@ func TestDivN(t *testing.T) {
 		require.ErrorIs(t, err, ErrDivisionByZero)
 	})
 }
+
+func TestNewFloat64(t *testing.T) {
+	t.Run("exact fraction", func(t *testing.T) {
+		n := NewFloat64(0.5)
+		require.Equal(t, "1/2", n.String())
+	})
+
+	t.Run("whole number", func(t *testing.T) {
+		n := NewFloat64(2)
+		require.Equal(t, "2", n.String())
+	})
+
+	t.Run("negative fraction", func(t *testing.T) {
+		n := NewFloat64(-1.25)
+		require.Equal(t, "-5/4", n.String())
+	})
+}

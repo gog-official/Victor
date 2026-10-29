@@ -8,6 +8,8 @@ const (
 	TokenMinus
 	TokenMultiply
 	TokenDivide
+	TokenIdentifier
+	TokenComma
 	TokenLeftParen
 	TokenRightParen
 	TokenIllegal

@@ -6,7 +6,12 @@ import (
 	"strings"
 )
 
-var ErrInvalidKey error = errors.New("invalid string name. string cannot be empty")
+const MaxVectors = 5
+
+var (
+	ErrInvalidKey    error = errors.New("invalid string name. string cannot be empty")
+	ErrWorkspaceFull error = errors.New("workspace can hold at most 5 vectors")
+)
 
 type Workspace struct {
 	vectors map[string]Vector2D
@@ -22,6 +27,9 @@ func (w *Workspace) Define(name string, v Vector2D) error {
 	name = FixName(name)
 	if name == "" {
 		return ErrInvalidKey
+	}
+	if _, exists := w.vectors[name]; !exists && len(w.vectors) >= MaxVectors {
+		return ErrWorkspaceFull
 	}
 	w.vectors[name] = v
 	return nil

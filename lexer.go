@@ -34,6 +34,8 @@ func (lex *Lexer) NextToken() Token {
 	switch lex.ch {
 	case '+':
 		tok = Token{Type: TokenPlus, Literal: string(lex.ch)}
+	case ',':
+		tok = Token{Type: TokenComma, Literal: string(lex.ch)}
 	case '(':
 		tok = Token{Type: TokenLeftParen, Literal: string(lex.ch)}
 	case ')':
@@ -49,7 +51,7 @@ func (lex *Lexer) NextToken() Token {
 	default:
 		if isLetter(lex.ch) {
 			tok.Literal = lex.readIdentifier()
-			tok.Type = TokenIllegal
+			tok.Type = TokenIdentifier
 			return tok
 		} else if isNumber(lex.ch) {
 			tok.Literal = lex.readNumber()
