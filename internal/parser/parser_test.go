@@ -1,18 +1,25 @@
-package main
+package parser
 
 import (
 	"testing"
 
+	"github.com/gog-official/victor/internal/lexer"
+	"github.com/gog-official/victor/internal/number"
+	"github.com/gog-official/victor/internal/vector"
+	"github.com/gog-official/victor/internal/workspace"
 	"github.com/stretchr/testify/require"
 )
 
-func parseExpression(t *testing.T, input string) Number {
+var testWorkspace = workspace.NewWorkspace()
+
+func newTestParser(input string) *Parser {
+	return NewParser(lexer.NewLexer(input), testWorkspace)
+}
+
+func parseExpression(t *testing.T, input string) number.Number {
 	t.Helper()
 
-	lex := NewLexer(input)
-	parser := NewParser(lex)
-
-	result, err := parser.Parse()
+	result, err := newTestParser(input).Parse()
 	require.NoError(t, err)
 
 	return result
@@ -180,7 +187,7 @@ func TestParseUnaryMinus(t *testing.T) {
 
 func TestParseErrors(t *testing.T) {
 	t.Run("empty input", func(t *testing.T) {
-		parser := NewParser(NewLexer(""))
+		parser := newTestParser("")
 
 		_, err := parser.Parse()
 
@@ -188,7 +195,7 @@ func TestParseErrors(t *testing.T) {
 	})
 
 	t.Run("illegal character", func(t *testing.T) {
-		parser := NewParser(NewLexer("@"))
+		parser := newTestParser("@")
 
 		_, err := parser.Parse()
 
@@ -196,7 +203,7 @@ func TestParseErrors(t *testing.T) {
 	})
 
 	t.Run("trailing operator", func(t *testing.T) {
-		parser := NewParser(NewLexer("2 +"))
+		parser := newTestParser("2 +")
 
 		_, err := parser.Parse()
 
@@ -204,7 +211,7 @@ func TestParseErrors(t *testing.T) {
 	})
 
 	t.Run("missing closing parenthesis", func(t *testing.T) {
-		parser := NewParser(NewLexer("(2 + 3"))
+		parser := newTestParser("(2 + 3")
 
 		_, err := parser.Parse()
 
@@ -212,7 +219,7 @@ func TestParseErrors(t *testing.T) {
 	})
 
 	t.Run("unexpected closing parenthesis", func(t *testing.T) {
-		parser := NewParser(NewLexer("2 + 3)"))
+		parser := newTestParser("2 + 3)")
 
 		_, err := parser.Parse()
 
@@ -220,15 +227,15 @@ func TestParseErrors(t *testing.T) {
 	})
 
 	t.Run("division by zero", func(t *testing.T) {
-		parser := NewParser(NewLexer("5 / 0"))
+		parser := newTestParser("5 / 0")
 
 		_, err := parser.Parse()
 
-		require.ErrorIs(t, err, ErrDivisionByZero)
+		require.ErrorIs(t, err, number.ErrDivisionByZero)
 	})
 
 	t.Run("two numbers without operator", func(t *testing.T) {
-		parser := NewParser(NewLexer("2 3"))
+		parser := newTestParser("2 3")
 
 		_, err := parser.Parse()
 
@@ -239,7 +246,7 @@ func TestParseErrors(t *testing.T) {
 func parseValue(t *testing.T, input string) Value {
 	t.Helper()
 
-	result, err := NewParser(NewLexer(input)).ParseValue()
+	result, err := newTestParser(input).ParseValue()
 	require.NoError(t, err)
 
 	return result
@@ -248,11 +255,11 @@ func parseValue(t *testing.T, input string) Value {
 func defineTestVector(t *testing.T, name string, x, y int64) {
 	t.Helper()
 
-	err := workspace.Define(name, Vector2D{NewInteger(x), NewInteger(y)})
+	err := testWorkspace.Define(name, vector.Vector2D{X: number.NewInteger(x), Y: number.NewInteger(y)})
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		workspace.Delete(name)
+		testWorkspace.Delete(name)
 	})
 }
 
@@ -366,7 +373,7 @@ func TestParseVectorErrors(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := NewParser(NewLexer(test.input)).ParseValue()
+			_, err := newTestParser(test.input).ParseValue()
 			require.Error(t, err)
 		})
 	}
@@ -375,6 +382,6 @@ func TestParseVectorErrors(t *testing.T) {
 func TestParseReturnsErrorForVector(t *testing.T) {
 	defineTestVector(t, "a", 3, 4)
 
-	_, err := NewParser(NewLexer("a")).Parse()
+	_, err := newTestParser("a").Parse()
 	require.Error(t, err)
 }

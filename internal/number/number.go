@@ -1,11 +1,14 @@
-package main
+package number
 
 import (
 	"errors"
 	"math/big"
 )
 
-var ErrZeroDenominator error = errors.New("cannot use 0 as the denominator")
+var (
+	ErrZeroDenominator error = errors.New("cannot use 0 as the denominator")
+	ErrDivisionByZero  error = errors.New("cannot divide by 0")
+)
 
 type Number struct {
 	value big.Rat

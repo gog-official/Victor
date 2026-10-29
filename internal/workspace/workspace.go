@@ -1,9 +1,11 @@
-package main
+package workspace
 
 import (
 	"errors"
 	"sort"
 	"strings"
+
+	"github.com/gog-official/victor/internal/vector"
 )
 
 const MaxVectors = 5
@@ -14,16 +16,16 @@ var (
 )
 
 type Workspace struct {
-	vectors map[string]Vector2D
+	vectors map[string]vector.Vector2D
 }
 
 func NewWorkspace() *Workspace {
 	return &Workspace{
-		vectors: make(map[string]Vector2D),
+		vectors: make(map[string]vector.Vector2D),
 	}
 }
 
-func (w *Workspace) Define(name string, v Vector2D) error {
+func (w *Workspace) Define(name string, v vector.Vector2D) error {
 	name = FixName(name)
 	if name == "" {
 		return ErrInvalidKey
@@ -35,16 +37,16 @@ func (w *Workspace) Define(name string, v Vector2D) error {
 	return nil
 }
 
-func (w *Workspace) Get(n string) (Vector2D, bool) {
+func (w *Workspace) Get(n string) (vector.Vector2D, bool) {
 	n = FixName(n)
-	vector, exists := w.vectors[n]
-	return vector, exists
+	v, exists := w.vectors[n]
+	return v, exists
 }
 
 func (w *Workspace) List() []string {
 	vecNames := []string{}
-	for vector := range w.vectors {
-		vecNames = append(vecNames, vector)
+	for vecName := range w.vectors {
+		vecNames = append(vecNames, vecName)
 	}
 	sort.Strings(vecNames)
 	return vecNames

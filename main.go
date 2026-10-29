@@ -6,12 +6,17 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/gog-official/victor/internal/lexer"
+	"github.com/gog-official/victor/internal/parser"
+	"github.com/gog-official/victor/internal/vector"
+	"github.com/gog-official/victor/internal/workspace"
 )
 
 var (
-	heading   string = "Victor does vector"
-	name      string = "Victor"
-	workspace        = NewWorkspace()
+	heading string = "Victor does vector"
+	name    string = "Victor"
+	store          = workspace.NewWorkspace()
 )
 
 func printPrompt() {
@@ -57,17 +62,17 @@ func handleClear() {
 	cmd.Run()
 }
 
-func evaluate(txt string) (Value, error) {
-	lexer := NewLexer(txt)
-	parser := NewParser(lexer)
-	return parser.ParseValue()
+func evaluate(txt string) (parser.Value, error) {
+	lex := lexer.NewLexer(txt)
+	p := parser.NewParser(lex, store)
+	return p.ParseValue()
 }
 
-func formatVector(v Vector2D) string {
+func formatVector(v vector.Vector2D) string {
 	return fmt.Sprintf("(%s, %s)", v.X.String(), v.Y.String())
 }
 
-func printValue(value Value) {
+func printValue(value parser.Value) {
 	if value.IsVector {
 		fmt.Println(formatVector(value.Vector))
 		return
@@ -99,11 +104,11 @@ func handleDefine(txt string) error {
 		return fmt.Errorf("expected a vector")
 	}
 
-	if err := workspace.Define(vecName, result.Vector); err != nil {
+	if err := store.Define(vecName, result.Vector); err != nil {
 		return err
 	}
 
-	fmt.Printf("%s = %s\n", FixName(vecName), formatVector(result.Vector))
+	fmt.Printf("%s = %s\n", workspace.FixName(vecName), formatVector(result.Vector))
 	return nil
 }
 
@@ -112,25 +117,25 @@ func handleShow(args []string) error {
 		return fmt.Errorf("usage: show <name>")
 	}
 
-	vector, exists := workspace.Get(args[1])
+	vec, exists := store.Get(args[1])
 	if !exists {
 		return fmt.Errorf("vector %q is not defined", args[1])
 	}
 
-	fmt.Printf("%s = %s\n", FixName(args[1]), formatVector(vector))
+	fmt.Printf("%s = %s\n", workspace.FixName(args[1]), formatVector(vec))
 	return nil
 }
 
 func handleList() {
-	names := workspace.List()
+	names := store.List()
 	if len(names) == 0 {
 		fmt.Println("no vectors defined")
 		return
 	}
 
 	for _, vecName := range names {
-		vector, _ := workspace.Get(vecName)
-		fmt.Printf("%s = %s\n", vecName, formatVector(vector))
+		vec, _ := store.Get(vecName)
+		fmt.Printf("%s = %s\n", vecName, formatVector(vec))
 	}
 }
 
@@ -139,11 +144,11 @@ func handleDelete(args []string) error {
 		return fmt.Errorf("usage: delete <name>")
 	}
 
-	if !workspace.Delete(args[1]) {
+	if !store.Delete(args[1]) {
 		return fmt.Errorf("vector %q is not defined", args[1])
 	}
 
-	fmt.Printf("deleted %s\n", FixName(args[1]))
+	fmt.Printf("deleted %s\n", workspace.FixName(args[1]))
 	return nil
 }
 
