@@ -9,7 +9,7 @@ Victor is a vector calculator where you can define 2d vectors and do operations 
 4. A fantastic REPL
 
 # How to install?
--> You need go 1.27.2+
--> then hit ```go install github.com/gog-official/victor@latest
+1. You need go 1.27.2+
+2. then hit ```go install github.com/gog-official/victor@latest
 ``` in your terminal.
--> Now run with Victor
+3. Now run with Victor
